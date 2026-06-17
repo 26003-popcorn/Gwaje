@@ -1,8 +1,6 @@
-
 import torch
 import torch.nn as nn
 import torchvision.models as models
-
 class VGGPerceptualLoss(nn.Module):
     def __init__(self):
         super().__init__()
@@ -23,3 +21,18 @@ class VGGPerceptualLoss(nn.Module):
 
     def forward(self, x, y):
         return self.crit(self.vgg(x), self.vgg(y))
+class ColorConstancyLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        """
+        x: 모델이 출력한 복원 영상 [Batch, Channel, Height, Width]
+        """
+        mean_r = torch.mean(x[:, 0, :, :])
+        mean_g = torch.mean(x[:, 1, :, :])
+        mean_b = torch.mean(x[:, 2, :, :])
+        
+        # R-G, R-B, G-B 채널 평균 간의 차이의 제곱합
+        loss = (mean_r - mean_g)**2 + (mean_r - mean_b)**2 + (mean_g - mean_b)**2
+        return loss
